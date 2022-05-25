@@ -1,4 +1,4 @@
-const { MongoClient, ServerApiVersion, ObjectId } = reqire('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
@@ -16,10 +16,24 @@ console.log(uri);
 app.use(cors());
 app.use(express.json());
 
+async function run() {
+    try {
+        await client.connect();
+        const toolsCollection = client.db('car_geeks').collection('tools');
 
+        // get all tools collection
+        app.get('/tools', async (req, res) => {
+            const tools = await toolsCollection.find().toArray();
+            res.send(tools);
+        })
 
+    }
+    finally { }
+}
 
+run().catch(console.dir);
 
+// server running check api
 app.get('/', async (req, res) => {
     res.send('Car Geeks Server is Running');
 });

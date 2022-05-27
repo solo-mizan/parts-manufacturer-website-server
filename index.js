@@ -1,4 +1,4 @@
-const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId, ObjectID } = require('mongodb');
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
@@ -20,11 +20,46 @@ async function run() {
     try {
         await client.connect();
         const toolsCollection = client.db('car_geeks').collection('tools');
+        const productCollection = client.db('car_geeks').collection("products");
+        const userCollection = client.db('car_geeks').collection("users");
+        const orderCollection = client.db('car_geeks').collection("orders");
+        const reviewCollection = client.db('car_geeks').collection("reviews");
 
         // get all tools collection
         app.get('/tools', async (req, res) => {
             const tools = await toolsCollection.find().toArray();
             res.send(tools);
+        });
+
+        // get singel item detail
+        app.get('/itemDetail/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: ObjectId(id) };
+            const itemDetail = await toolsCollection.findOne(query);
+            res.send(itemDetail);
+        });
+
+        // store new user email
+        app.put('/user/:email', async (req, res) => {
+            const email = req.params.email;
+            const user = req.body;
+            const filter = {email: email};
+            const options = {upsert: true};
+            const updateDoc = {
+                $set: user,
+            };
+            const result = await userCollection.updateOne(filter, updateDoc, options);
+            res.send(result);
+
+            //admin
+            app.get("/admin/:email", async (req, res) => {
+                const email = req.params.email;
+                const query = { email: email };
+                const user = await userCollection.findOne(query);
+                const isAdmin = user.role === "admin";
+                res.send({ admin: isAdmin });
+            });
+
         })
 
     }

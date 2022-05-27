@@ -43,15 +43,22 @@ async function run() {
         app.put('/user/:email', async (req, res) => {
             const email = req.params.email;
             const user = req.body;
-            const filter = {email: email};
-            const options = {upsert: true};
+            const filter = { email: email };
+            const options = { upsert: true };
             const updateDoc = {
                 $set: user,
             };
             const result = await userCollection.updateOne(filter, updateDoc, options);
             res.send(result);
 
-            //admin
+            // add a new product
+            app.post('/tools', async (req, res) => {
+                const body = req.body;
+                const result = await toolsCollection.insertOne(body);
+                res.send(result);
+            });
+
+            // admin
             app.get("/admin/:email", async (req, res) => {
                 const email = req.params.email;
                 const query = { email: email };

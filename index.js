@@ -58,6 +58,34 @@ async function run() {
                 res.send(result);
             });
 
+            // update user profile
+            app.put('/profile/:email', async (req, res) => {
+                const email = req.params.email;
+                const body = req.body;
+                const query = { email: email };
+                const updateDoc = {
+                    $set: body
+                };
+                const result = await userCollection.updateOne(query, updateDoc);
+                res.send(result);
+            });
+
+            // get user's existing profile data
+            app.get('/user/:email', async (req, res) => {
+                const email = req.params.email;
+                const query = { email: email };
+                const result = await userCollection.findOne(query);
+                res.send(result);
+            });
+
+            // get single user order
+            app.get('/myorder/:email', async (req, res)=> {
+                const email = req.params.email;
+                const query = {userEmail: email};
+                const result = await orderCollection.findOne(query).toArray;
+                res.send(result);
+            });
+
             // admin
             app.get("/admin/:email", async (req, res) => {
                 const email = req.params.email;

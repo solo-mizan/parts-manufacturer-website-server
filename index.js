@@ -10,8 +10,6 @@ const port = process.env.PORT || 5000;
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.udusb.mongodb.net/myFirstDatabase?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
-console.log(uri);
-
 // middleware
 app.use(cors());
 app.use(express.json());
@@ -24,6 +22,21 @@ async function run() {
         const userCollection = client.db('car_geeks').collection("users");
         const orderCollection = client.db('car_geeks').collection("orders");
         const reviewCollection = client.db('car_geeks').collection("reviews");
+
+        // post order api
+        app.post('/order', async (req, res) => {
+            const body = req.body;
+            console.log(body);
+            const result = await orderCollection.insertOne(body);
+            res.send(result);
+        });
+
+        // get all order api 
+        app.get('/order', async (req, res) => {
+            const query = {};
+            const result = await orderCollection.find(query);
+            res.send(result);
+        })
 
         // get all tools collection
         app.get('/tools', async (req, res) => {
@@ -78,11 +91,51 @@ async function run() {
                 res.send(result);
             });
 
+            // get all users data
+            app.get('/user', async (req, res) => {
+                const query = {};
+                const result = await userCollection.find(query).toArray;
+                res.send(result);
+            })
+
             // get single user order
-            app.get('/myorder/:email', async (req, res)=> {
+            app.get('/myorder/:email', async (req, res) => {
                 const email = req.params.email;
-                const query = {userEmail: email};
+                const query = { userEmail: email };
                 const result = await orderCollection.findOne(query).toArray;
+                res.send(result);
+            });
+
+            // // post a new order 
+            // app.post('/order', async (req, res) => {
+            //     // const body = req.body;
+            //     // const result = await orderCollection.insertOne(body);
+            //     res.send({insertedId: true});
+            // });
+
+            // update order quantity
+            app.put('/updateStock/:id', async (req, res) => {
+                const quantity = req.query.quantity;
+                const filter = { _id: ObjectId(id) };
+                const updateDoc = {
+                    $inc: {
+                        avlQuantity: -quantity
+                    },
+                }
+                const result = await toolsCollection.updateOne(filter, updateDoc);
+                res.send(result);
+            });
+
+            // product ship api
+            app.put('/ship/:id', async (req, res) => {
+                const id = req.params.id;
+                const query = { _id: ObjectId(id) };
+                const updateDoc = {
+                    $set: {
+                        shipment: 'shipped'
+                    }
+                }
+                const result = await orderCollection.updateOne(query, updateDoc);
                 res.send(result);
             });
 
@@ -93,6 +146,14 @@ async function run() {
                 const user = await userCollection.findOne(query);
                 const isAdmin = user.role === "admin";
                 res.send({ admin: isAdmin });
+            });
+
+            // delete product 
+            app.delete('/product/:id', async (req, res) => {
+                const id = req.params.id;
+                const query = { _id: ObjectId(id) };
+                const result = await productCollection.deleteOne(query);
+                res.send(result);
             });
 
         })

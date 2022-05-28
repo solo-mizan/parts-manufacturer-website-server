@@ -18,7 +18,7 @@ async function run() {
     try {
         await client.connect();
         const toolsCollection = client.db('car_geeks').collection('tools');
-        const productCollection = client.db('car_geeks').collection("products");
+        const productCollection = client.db('car_geeks').collection("tools");
         const userCollection = client.db('car_geeks').collection("users");
         const orderCollection = client.db('car_geeks').collection("orders");
         const reviewCollection = client.db('car_geeks').collection("reviews");
@@ -34,7 +34,7 @@ async function run() {
         // get all order api 
         app.get('/order', async (req, res) => {
             const query = {};
-            const result = await orderCollection.find(query);
+            const result = orderCollection.find(query);
             res.send(result);
         })
 
@@ -94,7 +94,7 @@ async function run() {
             // get all users data
             app.get('/user', async (req, res) => {
                 const query = {};
-                const result = await userCollection.find(query).toArray;
+                const result = await userCollection.find(query).toArray();
                 res.send(result);
             })
 
@@ -102,16 +102,9 @@ async function run() {
             app.get('/myorder/:email', async (req, res) => {
                 const email = req.params.email;
                 const query = { userEmail: email };
-                const result = await orderCollection.findOne(query).toArray;
+                const result = await orderCollection.find(query).toArray();
                 res.send(result);
             });
-
-            // // post a new order 
-            // app.post('/order', async (req, res) => {
-            //     // const body = req.body;
-            //     // const result = await orderCollection.insertOne(body);
-            //     res.send({insertedId: true});
-            // });
 
             // update order quantity
             app.put('/updateStock/:id', async (req, res) => {
@@ -148,11 +141,24 @@ async function run() {
                 res.send({ admin: isAdmin });
             });
 
-            // delete product 
-            app.delete('/product/:id', async (req, res) => {
+            // make admin api 
+            app.put('/user/admin/:email', async (req, res) => {
+                const email = req.params.email;
+                const query = { email: email };
+                const updateDoc = {
+                    $set: {
+                        role: "admin"
+                    }
+                };
+                const result = await userCollection.updateOne(query, updateDoc);
+                res.send(result);
+            });
+
+            // delete single tool
+            app.delete('/tool/:id', async (req, res) => {
                 const id = req.params.id;
                 const query = { _id: ObjectId(id) };
-                const result = await productCollection.deleteOne(query);
+                const result = await toolsCollection.deleteOne(query);
                 res.send(result);
             });
 
